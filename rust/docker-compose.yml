@@ -1,0 +1,14 @@
+services:
+  rust:
+    image: rust:trixie
+    container_name: rust_dev
+    working_dir: /personal_ws
+    volumes:
+      - ..:/personal_ws
+      - cargo-registry:/usr/local/cargo/registry
+    tty: true
+    stdin_open: true
+    command: bash
+
+volumes:
+  cargo-registry:

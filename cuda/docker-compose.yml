@@ -1,0 +1,18 @@
+  services:
+    cuda:
+      image: nvidia/cuda:12.9.2-cudnn-devel-ubuntu24.04
+      working_dir: /workspace
+      restart: unless-stopped
+      tty: true
+      stdin_open: true
+      command: sleep infinity
+      deploy:
+        resources:
+          reservations:
+            devices: [{ driver: nvidia, count: all, capabilities: [gpu] }]
+      volumes:
+        - personal_ws:/workspace
+
+  volumes:
+    personal_ws:
+      external: true
