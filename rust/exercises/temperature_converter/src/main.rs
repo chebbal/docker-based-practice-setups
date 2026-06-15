@@ -1,4 +1,5 @@
-use std::env;
+// use std::env;
+use clap::Parser;
 
 const FAREN_2_CELSIUS_FACTOR: f64 = 5.0 / 9.0;
 const CELSIUS_2_FAREN_FACTOR: f64 = 9.0 / 5.0;
@@ -11,25 +12,28 @@ fn celsius_2_faren(celsius: f64) -> f64 {
     celsius * CELSIUS_2_FAREN_FACTOR + 32.0 
 }
 
+#[derive(Parser)]
+#[command(name = "temperature_converter")]
+#[command(about = "Convert temperatures between Fahrenheit and Celsius")]
+struct Args {
+    /// Temperature to convert
+    temperature: f64,
+
+    /// Input is Fahrenheit; convert to Celsius (default: Celsius → Fahrenheit)
+    #[arg(long)]
+    to_celsius: bool,
+}
+
 fn main() {
-    // println!("Hello, world!");
-    let args: Vec<String> = env::args().collect();
-    
-    if args.len() < 2 {
-        eprintln!("Usage: temperature_converter <temperature> [--to-farenheit]");
-        std::process::exit(1);
-    }
 
-    // assumptions:
-    // 1. here to get valid input so using unwrap directly. otherwise parse returns Result type.
-    let temp: f64 = args[1].parse().unwrap();
-    let to_farenheit: bool = args.contains(&"--to-farenheit".to_string());
+    let args = Args::parse();
+    let temp: f64 = args.temperature;
 
-    if to_farenheit {
-        let result = celsius_2_faren(temp);
-        println!("{}°C = {}°F", temp, result);
-    } else {
+    if args.to_celsius {
         let result = faren_2_celsius(temp);
         println!("{}°F = {}°C", temp, result);
+    } else {
+        let result = celsius_2_faren(temp);
+        println!("{}°C = {}°F", temp, result);
     }
 }

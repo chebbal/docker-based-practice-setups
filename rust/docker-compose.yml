@@ -5,6 +5,7 @@ services:
       dockerfile: Dockerfile
     image: rust-dev:latest
     container_name: rust_dev
+    user: "${UID}:${GID}"
     working_dir: /workspace
     restart: unless-stopped
     tty: true
