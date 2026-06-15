@@ -1,14 +1,19 @@
 services:
   rust:
-    image: rust:trixie
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: rust-dev:latest
     container_name: rust_dev
-    working_dir: /personal_ws
-    volumes:
-      - ..:/personal_ws
-      - cargo-registry:/usr/local/cargo/registry
+    working_dir: /workspace
+    restart: unless-stopped
     tty: true
     stdin_open: true
-    command: bash
+    command: sleep infinity
+    volumes:
+      - personal_ws:/workspace
+      - ~/personal_ws:/personal_ws
 
 volumes:
-  cargo-registry:
+  personal_ws:
+    external: true
