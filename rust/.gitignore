@@ -1,0 +1,21 @@
+# Cargo build output (all nested crates)
+target/
+
+# Compiled binaries and libraries
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Debug symbols
+*.pdb
+
+# Rustfmt backups
+**/*.rs.bk
+
+# Backup files
+*.orig
+
+# Local environment overrides
+.env
+.env.*
