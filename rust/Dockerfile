@@ -22,6 +22,9 @@ RUN cargo install cargo-nextest --locked && \
     rustup toolchain install nightly --profile minimal && \
     rustup component add --toolchain nightly miri
 
+# Ensure cargo/rustup are on PATH in interactive bash shells.
+RUN echo '. /usr/local/cargo/env' >> /etc/bash.bashrc
+
 # Default to a stable workspace mount point used by docker-compose.
 WORKDIR /workspace
 
