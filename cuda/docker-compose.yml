@@ -12,6 +12,7 @@
             devices: [{ driver: nvidia, count: all, capabilities: [gpu] }]
       volumes:
         - personal_ws:/workspace
+        - ~/personal_ws:/personal_ws
 
   volumes:
     personal_ws:
