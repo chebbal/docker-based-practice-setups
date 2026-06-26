@@ -3,9 +3,13 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        USERNAME: ${USERNAME:-dev}
+        USER_UID: ${UID:-1000}
+        USER_GID: ${GID:-1000}
     image: rust-dev:latest
     container_name: rust_dev
-    user: "${UID}:${GID}"
+    user: "${UID:-1000}:${GID:-1000}"
     working_dir: /workspace
     restart: unless-stopped
     tty: true

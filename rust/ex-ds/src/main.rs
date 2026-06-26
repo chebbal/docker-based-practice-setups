@@ -149,8 +149,30 @@ fn test_idx_strings() {
 
     println!("First char: {:?}", first_char);
     println!("Bytes: {:?}", &as_bytes[..5]);
-
 }
+
+// novice way -- of wrining this
+fn count_words(text: &str) -> usize {
+
+    // let white_space = String::as_bytes(' ');
+    let mut cnt: usize = 0;
+    for c in text.chars() {
+        if c == ' ' {
+            cnt += 1;
+        } 
+    }
+
+    cnt + 1
+    
+}
+
+fn test_count_words() {
+    let input_word = "Hello World !";
+    let count : usize = count_words(input_word);
+    assert_eq!(3, count_words(input_word));
+}
+
+
 
 fn main() {
     println!("Data structure exercises");
@@ -170,5 +192,7 @@ fn main() {
     test_strings();
     println!("{}", "-".repeat(20));
     test_idx_strings();
+    println!("{}", "-".repeat(20));
+    test_count_words();
     println!("{}", "-".repeat(20));
 }
