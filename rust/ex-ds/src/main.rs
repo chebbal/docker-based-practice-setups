@@ -100,6 +100,58 @@ fn test_const_and_static()
     println!("test_const_and_static: end");
 }
 
+fn test_strings() {
+    // Rust has two string types that serve two different purposes:
+    // 1. String - owned, heap-allocated, growable, akin to std::string and malloc'd string
+    // 2. &str - borrowed, lightweight reference with length, akin to const char * and std::string_view.
+    //           with clear semantics of immutability and it is lifetime checked, thus never allowed to dangle.
+    // Note: Unlike C's null terminated strings, rust strings track their length and are guaranteed valid UTF-8
+
+    let greeting : &str = "Hello"; // points to read-only memory
+
+    //String - heap allocated and growable
+    let mut owned : String  = String::from(greeting); //copies data to heap
+    owned.push_str(", World"); // Grow the string
+    owned.push('!'); // append a single character
+
+    println!("{owned}");
+
+    //converting between String and &str
+    let slice : &str = &owned; // String -> &str, free just a borrow
+    let owned2 : String = slice.to_string(); // &str -> String, allocates
+    let owned3 : String = String::from(slice); // same as above
+
+    println!("{owned3}");
+    
+    // String concatenation (note: + consumes the left operand)
+    let hello = String::from("Hello");
+    let world = String::from(", World!");
+    let combined = hello + &world; // hello is moved (consumed), world is borrowed
+    // println!("{hello}"); // wont compile, hello was moved
+
+    // use format! to avoid move issues
+    let a = String::from("Hello");
+    let b = String::from("World");
+    let combined = format!("{a}, {b}!"); // Neither a and b is consumed
+
+    println!("{combined}");
+
+}
+
+fn test_idx_strings() {
+    let s = String::from("hello");
+    // let c = s[0]; // does not work. Rust strings are UTF-8, not byte arrays
+
+    //safe alternatives:
+    let first_char = s.chars().next(); // Option<char>: Some('h')
+    let as_bytes = s.as_bytes(); //&[u8]: raw UTF-8 bytes
+    let substring = &s[0..1];
+
+    println!("First char: {:?}", first_char);
+    println!("Bytes: {:?}", &as_bytes[..5]);
+
+}
+
 fn main() {
     println!("Data structure exercises");
     println!("{}", "-".repeat(20));
@@ -114,5 +166,9 @@ fn main() {
     test_slices();
     println!("{}", "-".repeat(20));
     test_const_and_static();
+    println!("{}", "-".repeat(20));
+    test_strings();
+    println!("{}", "-".repeat(20));
+    test_idx_strings();
     println!("{}", "-".repeat(20));
 }
