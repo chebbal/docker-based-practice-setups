@@ -2,16 +2,14 @@
 // notes: all rust data types are immutable by default. you can create mutable data types
 // by using `mut` keyword. example: `let mut x = 42;`
 
-
-fn get_index(y : usize) -> usize {
+fn get_index(y: usize) -> usize {
     y + 1
 }
 
-fn test_array_1()
-{
+fn test_array_1() {
     println!("test_array_1: start");
     // initializes the array of type u8 with 3 elements and all set to 42
-    let a : [u8; 3] = [42; 3];
+    let a: [u8; 3] = [42; 3];
     for x in a {
         println!("{x}");
     }
@@ -21,15 +19,10 @@ fn test_array_1()
     println!("test_array_1: end");
 }
 
-fn test_array_2()
-{
+fn test_array_2() {
     println!("test_array_2: start");
     // multi-dimensional array
-    let a = [
-        [40, 0],
-        [41, 0],
-        [42, 1]
-    ];
+    let a = [[40, 0], [41, 0], [42, 1]];
 
     for x in a {
         println!("{x:?}"); // using the built-in print formatters. `:? (debug), :#? (pretty-print)`
@@ -43,7 +36,7 @@ fn get_tuple() -> (u32, bool) {
     (42, true)
 }
 
-fn test_tuple(){
+fn test_tuple() {
     println!("test_tuple: start");
     let t: (u32, bool) = (42, true);
     let u: (u8, bool) = (43, false);
@@ -74,17 +67,15 @@ fn test_references() {
     let d = &mut a; // ok: b and c are not in scope
     println!("{}", *d);
     println!("test_references: end");
-
 }
 
-fn test_slices()
-{
+fn test_slices() {
     // internally rust implements slices as "fat pointer (length of slice + poiter to starting element)"
     println!("test_slices: start");
     let a = [40, 41, 42, 43, 44];
-    let b  = &a[1..a.len()]; // slice from idx 1 to end
+    let b = &a[1..a.len()]; // slice from idx 1 to end
     let c = &a[1..]; // slice from idx 1 to end
-    let d = &a[..];; // Same as original array, `&a[0..] or &a[0..a.len()]`
+    let d = &a[..]; // Same as original array, `&a[0..] or &a[0..a.len()]`
     println!("{b:?} {c:?} {d:?}");
     println!("test_slices: end");
 }
@@ -92,8 +83,7 @@ fn test_slices()
 const SECRET_OF_LIFE: u32 = 42;
 static GLOBAL_VARIABLE: u32 = 2;
 
-fn test_const_and_static()
-{
+fn test_const_and_static() {
     println!("test_const_and_static: start");
     println!("The secret of life is {}", SECRET_OF_LIFE);
     println!("The global variable is {}", GLOBAL_VARIABLE);
@@ -107,22 +97,22 @@ fn test_strings() {
     //           with clear semantics of immutability and it is lifetime checked, thus never allowed to dangle.
     // Note: Unlike C's null terminated strings, rust strings track their length and are guaranteed valid UTF-8
 
-    let greeting : &str = "Hello"; // points to read-only memory
+    let greeting: &str = "Hello"; // points to read-only memory
 
     //String - heap allocated and growable
-    let mut owned : String  = String::from(greeting); //copies data to heap
+    let mut owned: String = String::from(greeting); //copies data to heap
     owned.push_str(", World"); // Grow the string
     owned.push('!'); // append a single character
 
     println!("{owned}");
 
     //converting between String and &str
-    let slice : &str = &owned; // String -> &str, free just a borrow
-    let owned2 : String = slice.to_string(); // &str -> String, allocates
-    let owned3 : String = String::from(slice); // same as above
+    let slice: &str = &owned; // String -> &str, free just a borrow
+    let owned2: String = slice.to_string(); // &str -> String, allocates
+    let owned3: String = String::from(slice); // same as above
 
     println!("{owned3}");
-    
+
     // String concatenation (note: + consumes the left operand)
     let hello = String::from("Hello");
     let world = String::from(", World!");
@@ -135,7 +125,6 @@ fn test_strings() {
     let combined = format!("{a}, {b}!"); // Neither a and b is consumed
 
     println!("{combined}");
-
 }
 
 fn test_idx_strings() {
@@ -151,28 +140,104 @@ fn test_idx_strings() {
     println!("Bytes: {:?}", &as_bytes[..5]);
 }
 
-// novice way -- of wrining this
+// novice way -- of writing this
 fn count_words(text: &str) -> usize {
-
     // let white_space = String::as_bytes(' ');
     let mut cnt: usize = 0;
     for c in text.chars() {
         if c == ' ' {
             cnt += 1;
-        } 
+        }
     }
 
     cnt + 1
-    
+}
+
+// rust way
+fn count_words_1(text: &str) -> usize {
+    text.split_whitespace().count()
 }
 
 fn test_count_words() {
     let input_word = "Hello World !";
-    let count : usize = count_words(input_word);
-    assert_eq!(3, count_words(input_word));
+    assert_eq!(3, count_words_1(input_word));
 }
 
+// novice way
+fn longest_word(text: &str) -> &str {
+    let words = text.split_whitespace();
+    let mut long_word = "";
+    for word in words {
+        if word.len() > long_word.len() {
+            long_word = word;
+        }
+    }
+    long_word
+}
 
+//rust way
+fn longest_word_1(text: &str) -> &str {
+    text.split_whitespace()
+        .max_by_key(|w| w.len())
+        .unwrap_or("")
+}
+
+fn test_longest_word() {
+    let word = "Hello World!";
+    assert_eq!("World!", longest_word_1(word));
+}
+
+fn test_structs() {
+    struct MyStruct {
+        num: u32,
+        is_secret_of_life: bool,
+    }
+
+    let x = MyStruct {
+        num: 42,
+        is_secret_of_life: true,
+    };
+    let y = MyStruct {
+        num: x.num,
+        is_secret_of_life: x.is_secret_of_life,
+    };
+    let z = MyStruct { num: x.num, ..x }; // ..x mean copies rest of the entries from x
+    println! {"MyStruct : {} {} {}", x.num, y.is_secret_of_life, z.num};
+}
+
+// tuple structs are analogous to anonymous structs
+struct WeightInGrams(u32);
+struct WeightInMilligrams(u32);
+
+fn to_weight_in_grams(kilograms: u32) -> WeightInGrams {
+    WeightInGrams(kilograms * 1000)
+}
+
+fn to_weight_in_milligrams(w: WeightInGrams) -> WeightInMilligrams {
+    WeightInMilligrams(w.0 * 1000)
+}
+
+fn test_tuple_structs() {
+    let x = to_weight_in_grams(42);
+    let y = to_weight_in_milligrams(x);
+    // let z: WeightInGrams = x; // compiler error: value used here after move. reason: move occurs because `x` has type `WeightInGrams`, which does not implement the `Copy` trait
+    // let a: WeightInGrams = y; // compiler error: type mismatch
+}
+
+//#[derive(...)] attribute automatically generates common trait implementations for structs and enums
+#[derive(Debug, Clone, PartialEq)]
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+fn test_automatic_traits_for_structs() {
+    let p1: Point = Point { x: 10, y: 10 };
+    println!("{:?}", p1); // :? debug formatter, :#? pretty print formatter
+    let p2: Point = p1.clone();
+    println!("{:#?}", p2);
+    assert_eq!(p1, p2);
+}
 
 fn main() {
     println!("Data structure exercises");
@@ -194,5 +259,13 @@ fn main() {
     test_idx_strings();
     println!("{}", "-".repeat(20));
     test_count_words();
+    println!("{}", "-".repeat(20));
+    test_longest_word();
+    println!("{}", "-".repeat(20));
+    test_structs();
+    println!("{}", "-".repeat(20));
+    test_tuple_structs();
+    println!("{}", "-".repeat(20));
+    test_automatic_traits_for_structs();
     println!("{}", "-".repeat(20));
 }

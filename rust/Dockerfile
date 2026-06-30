@@ -32,21 +32,24 @@ RUN cargo install cargo-edit --locked && \
     rustup toolchain install nightly --profile minimal && \
     rustup component add --toolchain nightly miri
 
-# Ensure cargo/rustup are on PATH and enable bash completions in interactive shells.
-RUN cat >> /etc/bash.bashrc <<'EOF'
+# Single shell-setup script sourced by both login and non-login interactive shells:
+# puts cargo/rustup on PATH and enables bash + git completion.
+RUN cat > /etc/profile.d/dev.sh <<'EOF'
+# Cargo/rustup on PATH (all shells)
+[ -f /usr/local/cargo/env ] && . /usr/local/cargo/env
 
-# Cargo/rustup
-. /usr/local/cargo/env
-
-# Bash completion
-if ! shopt -oq posix; then
-  if [ -f /usr/share/bash-completion/bash_completion ]; then
-    . /usr/share/bash-completion/bash_completion
-  elif [ -f /etc/bash_completion ]; then
-    . /etc/bash_completion
-  fi
-fi
+# Programmable completion (interactive bash only)
+case "$-" in
+  *i*)
+    if [ -n "$BASH_VERSION" ] && ! shopt -oq posix; then
+      [ -f /usr/share/bash-completion/bash_completion ] && . /usr/share/bash-completion/bash_completion
+      # git completion (subcommands, refs, and aliases)
+      [ -f /usr/share/bash-completion/completions/git ] && . /usr/share/bash-completion/completions/git
+    fi
+    ;;
+esac
 EOF
+RUN printf '\n# Dev shell setup (login shells get this via /etc/profile.d)\n[ -f /etc/profile.d/dev.sh ] && . /etc/profile.d/dev.sh\n' >> /etc/bash.bashrc
 
 # Create a user matching the host UID/GID and give it the shared toolchain dirs.
 RUN if ! getent group "${USER_GID}" >/dev/null; then groupadd --gid "${USER_GID}" "${USERNAME}"; fi \
