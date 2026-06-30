@@ -308,6 +308,38 @@ fn test_hash_maps() {
 
 }
 
+// simple exercise with vectors and hashmaps
+fn test_ex1() {
+    use std::collections::HashMap;
+    let map = HashMap::from([(40, false), (41, false), (42, true)]);
+    let mut keys = Vec::new();
+    let mut values = Vec::new();
+
+    for (key, value) in &map {
+        keys.push(*key);
+        values.push(*value);
+    }
+
+    println!("{keys:?}");
+    println!("{values:?}");
+
+    // approach 2: using unzip - fp way
+    let (keys2, values2): (Vec<u32>, Vec<bool>) = map.into_iter().unzip();
+    println!("{keys2:?} (unzip)");
+    println!("{values2:?} (unzip)");
+
+}
+
+// some notes on references in rust vs c++ - https://microsoft.github.io/RustTraining/c-cpp-book/ch05-data-structures.html
+// 1. No rvalue references or universal references. `&&` is a boolean AND operator in rust
+// 2. In rust moves are bitwise, no move constructors
+// 3. Auto-deref - compiler sees through indirection.
+// 4. No null references, No optional references
+// 5. references cannot be resated.
+// Mental model: In C++, a reference is a permanent alias for one object. In Rust, a reference is a value (a pointer with lifetime guarantees) 
+//               that follows normal variable binding rules — immutable by default, rebindable only if declared mut.
+
+
 fn main() {
     println!("Data structure exercises");
     println!("{}", "-".repeat(20));
@@ -341,5 +373,6 @@ fn main() {
     println!("{}", "-".repeat(20));
     test_hash_maps();
     println!("{}", "-".repeat(20));
-    
+    test_ex1();
+    println!("{}", "-".repeat(20));
 }
