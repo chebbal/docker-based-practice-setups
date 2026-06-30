@@ -2,6 +2,7 @@
 // notes: all rust data types are immutable by default. you can create mutable data types
 // by using `mut` keyword. example: `let mut x = 42;`
 
+// arrays
 fn get_index(y: usize) -> usize {
     y + 1
 }
@@ -32,6 +33,7 @@ fn test_array_2() {
     println!("test_array_2: end");
 }
 
+// Tuples
 fn get_tuple() -> (u32, bool) {
     (42, true)
 }
@@ -47,6 +49,7 @@ fn test_tuple() {
     println!("test_tuple: end");
 }
 
+// rust references
 fn test_references() {
     // rust references are akin to pinters in C with two properties:
     // 1. you can have any number of read-only references to a variable at any point of time
@@ -69,6 +72,7 @@ fn test_references() {
     println!("test_references: end");
 }
 
+// slices - arrays and strings
 fn test_slices() {
     // internally rust implements slices as "fat pointer (length of slice + poiter to starting element)"
     println!("test_slices: start");
@@ -80,6 +84,7 @@ fn test_slices() {
     println!("test_slices: end");
 }
 
+// const and static in rust
 const SECRET_OF_LIFE: u32 = 42;
 static GLOBAL_VARIABLE: u32 = 2;
 
@@ -90,6 +95,7 @@ fn test_const_and_static() {
     println!("test_const_and_static: end");
 }
 
+// Strings
 fn test_strings() {
     // Rust has two string types that serve two different purposes:
     // 1. String - owned, heap-allocated, growable, akin to std::string and malloc'd string
@@ -187,6 +193,7 @@ fn test_longest_word() {
     assert_eq!("World!", longest_word_1(word));
 }
 
+// Structs
 fn test_structs() {
     struct MyStruct {
         num: u32,
@@ -239,6 +246,68 @@ fn test_automatic_traits_for_structs() {
     assert_eq!(p1, p2);
 }
 
+// Vectors
+// dynamic heap allocated array, similar to std::vector<T>
+// Common operations: push(), pop(), insert(), remove(), len(), capacity()
+
+fn test_vectors() {
+    let mut v = Vec::new();
+    v.push(42);
+    v.push(43);
+
+    // println!("{:#?}", v);
+    // safe iteration (preferred way), borrow elements, don't consume vector
+    for x in &v {
+        println!("{x}");
+    }
+
+    // initialization shortcuts
+    let mut v2 = vec![1,2,3,4,5]; // vec! macro for initialization
+    let v3 = vec![0; 10]; // initialize with 10 zeros
+
+    // safe access methods, preferred over indexing
+    match v2.get(0) {
+        Some(first) => println!("First: {first}"),
+        None => println!("empty vector"),
+    }
+
+    //useful methods: len(), capacity()
+    println!("Length:{}, capacity:{}", v2.len(), v2.capacity());
+    if let Some(last) = v2.pop() {
+        println!("Popped: {last}");
+    }
+
+    // Dangerous -direct indexing (can panic!)
+    // println!("{}", v2[100]);
+
+}
+
+// Hashmap - dictionary
+// key-value maps/ lookups. same as std::unordered_map<T, T> in c++
+fn test_hash_maps() {
+    use std::collections::HashMap; // need an explicit import unlike Vec
+    let mut map = HashMap::new(); // allocate memory
+
+    map.insert(40, false); // Type is inferred as int -> bool
+    map.insert(41, false);
+    map.insert(42, true);
+
+    for (key, value) in map {
+        println!("{key} {value}");
+    }
+
+    let map = HashMap::from([(40, false), (41, false), (42, true)]);
+    if let Some(x) = map.get(&43) {
+        println!("43 was mapped to {x:?}");
+    } else {
+        println!("No mapping was found for 43");
+    }
+
+    let x = map.get(&43).or(Some(&false)); // default value if key not found
+    println!("{x:?}");
+
+}
+
 fn main() {
     println!("Data structure exercises");
     println!("{}", "-".repeat(20));
@@ -268,4 +337,9 @@ fn main() {
     println!("{}", "-".repeat(20));
     test_automatic_traits_for_structs();
     println!("{}", "-".repeat(20));
+    test_vectors();
+    println!("{}", "-".repeat(20));
+    test_hash_maps();
+    println!("{}", "-".repeat(20));
+    
 }
