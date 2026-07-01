@@ -232,11 +232,8 @@ fn test_tuple_structs() {
 }
 
 //#[derive(...)] attribute automatically generates common trait implementations for structs and enums
-#[derive(Debug, Clone, PartialEq)]
-struct Point {
-    x: i32,
-    y: i32,
-}
+// Point now lives in lib.rs so other crates (e.g. ex-enums) can import it.
+use ex_ds::Point;
 
 fn test_automatic_traits_for_structs() {
     let p1: Point = Point { x: 10, y: 10 };
