@@ -193,6 +193,9 @@ fn test_copy_trait() {
 impl Drop for Point {
     fn drop(&mut self) {
         println!("Goodbye point x:{} y:{}", self.x, self.y);
+        self.x = 0;
+        self.y = 0;
+        println!("reset point x:{} y:{}", self.x, self.y);
     }
 }
 fn test_drop_trait() {
@@ -209,7 +212,6 @@ fn test_drop_trait() {
     }
     println!("Exiting test_drop_trait");
     //p.drop() called here
-
 
 }
 
