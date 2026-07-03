@@ -144,7 +144,6 @@ fn consume_point(p: Point) {
 fn borrow_point(p: &Point) {
     println!("{} {}", p.x, p.y);
     // p goes out of scope and nothing happens, since p does not own anything
-
 }
 
 fn test_move_semantics_3() {
@@ -152,7 +151,7 @@ fn test_move_semantics_3() {
     // 1. it is illegal to reference outstanding references after the move is completed
     // 2. Consider borrowing if move is not desirable
     println!("Example - move semantics and ownership");
-    let p = Point{ x: 10, y: 20 };
+    let p = Point { x: 10, y: 20 };
     // try flipping these 2 lines, it will result in compiler error
     borrow_point(&p); // borrowed
     consume_point(p); // ownership transfer
@@ -167,7 +166,6 @@ fn test_clone() {
     println!("{s}");
     // s1 goes out of scope here, memory is deallocated.
     // s goes out of scope here, memory is deallocated.
-
 }
 
 //try commenting this out to see the change in let p1 = p; below
@@ -183,13 +181,12 @@ fn test_copy_trait() {
     // 2. user-defined types can opt-in to copy semantics using the derive macro with to automatically
     //    implement the copy trait.
     // 3. The compiler will allocate space for the copy following a new assignment.
-    let p = PointWTraits{x:10, y:20};
+    let p = PointWTraits { x: 10, y: 20 };
     let p1 = p; // this will perform copy now instead of the move
     println!("p - {p:?}");
     println!("p1 - {p1:?}");
     let p2 = p1.clone(); // semantically same as copy
 }
-
 
 impl Drop for Point {
     fn drop(&mut self) {
@@ -205,9 +202,9 @@ fn test_drop_trait() {
     // -`drop` is part of generic Drop trait. The compiler provides a default NOP
     //   implementation for all types, but types can override it.
     // analogous to c++ dtor
-    let p = Point{x: 10, y:20};
+    let p = Point { x: 10, y: 20 };
     {
-        let p1 = Point{x: 11, y:21};
+        let p1 = Point { x: 11, y: 21 };
         println!("Exiting inner block");
         // p1.drop() called here - like c++ end of scope destructor
     }
@@ -231,7 +228,6 @@ fn test_rust_implicit_lifetime() {
     borrow_mut(&mut x); // permitted because _z is not used
     let z = &x; // ok - mutable borrow of x ended after borrow_mut() returned
     println!("{z}");
-
 }
 
 // without lifetime annotation this will not compile
@@ -245,23 +241,25 @@ fn left_or_right<'a>(pick_left: bool, left: &'a Point, right: &'a Point) -> &'a 
 }
 
 // more complex: different lifetime for inputs
-fn get_x_coordinates<'a, 'b>(p1: &'a Point, _p2: &'b Point) -> &'a Point {
+fn get_x_coordinate<'a, 'b>(p1: &'a Point, _p2: &'b Point) -> &'a u32 {
     &p1.x // return value lifetime tied to p1 not p2
 }
 
 fn test_lifetime_annotations() {
+    // explicit annotations are needed when compiler cannot deduce the lifetime of a returned reference
     println!("Example -  rust lifetime annotations");
-    let p1 = Point {x: 10, y: 20};
+    let p1 = Point { x: 10, y: 20 };
     let result;
     {
-        let p2 = Point {x: 42, y:43};
+        let p2 = Point { x: 42, y: 43 };
         result = left_or_right(true, &p1, &p2);
         // this works because we use result, before p2 goes out of scope.
         println!("Selected: {result:?}");
     }
-    // this would not work -    result references p2 which is now out of scope
-    // println!("After scope: {result:?}")
+    // won't compile: result's lifetime is bounded by p2 (both args share 'a),
+    // even though at runtime it points to p1. The signature, not the value, decides.
 
+    // println!("After scope: {result:?}")
 }
 
 fn main() {
