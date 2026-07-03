@@ -54,11 +54,60 @@ fn test_borrow_lifetime_1() {
     // a goes out of scope last
 }
 
+fn foo(x: &u32) {
+    println!("foo: {x} - pass by reference");
+}
+fn bar(x: u32) {
+    println!("bar: {x} - pass by value");
+}
+
+fn test_parameter_passing() {
+    // rust can pass parameters to methods using several different mechanisms
+    // 1. pass by value (copy): Typically types that can be trivially copied(ex:u8, u32, i8, i32)
+    // 2. pass by reference: Analogous to pass by pointer in c. This is commonly known as borrowing.
+    //                       reference can be immutable (&) or mutable(&mut)
+    // 3. by moving: This transfers ownership of the value to the function. The caller can no longer reference 
+    //               the original value.
+    println!("Example 3  Parameter passing");
+    let a = 42;
+    foo(&a); // by reference
+    bar(a); // By value (copy)
+    println!("original value a: {a}");
+
+}
+
+// fn no_dangling() -> &u32 {
+//     // lifetime of `a` begins here.
+//     let a = 42;
+//     // Won't compile. lifetime of `a` ends here.
+//     &a
+// }
+
+fn ok_reference(a: &u32) -> &u32 {
+    a // okay because, lifetime of `a` always exceeds ok_reference()
+}
+
+
+fn test_return_values() {
+    println!("Example 4  return values from methods");
+    // rust prohibits dangling reference from methods.
+    // 1. references returned by methods must be still in scope.
+    // 2. rust will automatically drop a reference when it goes out of scope.
+    let a =42; // lifetime `a` begins here
+    let b = ok_reference(&a);
+    // lifetime `b` ends here
+    // lifetime of `a` ends here.
+}
+
 fn main() {
     println!("Ownership in Rust!!");
     println!("{}", "-".repeat(20));
     test_ownership_1();
     println!("{}", "-".repeat(20));
     test_borrow_lifetime_1();
+    println!("{}", "-".repeat(20));
+    test_parameter_passing();
+    println!("{}", "-".repeat(20));
+    test_return_values();
     println!("{}", "-".repeat(20));
 }
