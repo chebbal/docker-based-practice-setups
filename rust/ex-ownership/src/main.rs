@@ -130,6 +130,7 @@ fn test_move_semantics_2() {
     println!("{t}");
 }
 
+#[derive(Debug)]
 struct Point {
     x: u32,
     y: u32,
@@ -211,7 +212,55 @@ fn test_drop_trait() {
         // p1.drop() called here - like c++ end of scope destructor
     }
     println!("Exiting test_drop_trait");
-    //p.drop() called here
+    //p.drop() called heres
+}
+
+fn borrow_mut(x: &mut u32) {
+    *x = 43;
+}
+fn test_rust_implicit_lifetime() {
+    println!("Example - Implicit lifetime for references");
+    // rust enforces a single mutable reference and any number of immutable references
+    // - The lifetime of any reference must be at least as long as the original owning lifetime
+    // - These are implicit lifetimes and are automatically inferred by the compiler.
+    let mut x = 42;
+    let y = &mut x;
+    borrow_mut(y);
+    let _z = &mut x; // permitted because compiler knows y is not subsequently used.
+    //println!("{y}"); // will not compile due to multiple mutable references, y and _z are active
+    borrow_mut(&mut x); // permitted because _z is not used
+    let z = &x; // ok - mutable borrow of x ended after borrow_mut() returned
+    println!("{z}");
+
+}
+
+// without lifetime annotation this will not compile
+// fn left_or_right(pick_left: bool, left: &Point, right: &Point) -> &Point {
+//     if pick_left { &left } else { &right }
+// }
+
+// with annotation all references share the same lifetime `'a`
+fn left_or_right<'a>(pick_left: bool, left: &'a Point, right: &'a Point) -> &'a Point {
+    if pick_left { left } else { right }
+}
+
+// more complex: different lifetime for inputs
+fn get_x_coordinates<'a, 'b>(p1: &'a Point, _p2: &'b Point) -> &'a Point {
+    &p1.x // return value lifetime tied to p1 not p2
+}
+
+fn test_lifetime_annotations() {
+    println!("Example -  rust lifetime annotations");
+    let p1 = Point {x: 10, y: 20};
+    let result;
+    {
+        let p2 = Point {x: 42, y:43};
+        result = left_or_right(true, &p1, &p2);
+        // this works because we use result, before p2 goes out of scope.
+        println!("Selected: {result:?}");
+    }
+    // this would not work -    result references p2 which is now out of scope
+    // println!("After scope: {result:?}")
 
 }
 
@@ -237,5 +286,9 @@ fn main() {
     test_copy_trait();
     println!("{}", "-".repeat(20));
     test_drop_trait();
+    println!("{}", "-".repeat(20));
+    test_rust_implicit_lifetime();
+    println!("{}", "-".repeat(20));
+    test_lifetime_annotations();
     println!("{}", "-".repeat(20));
 }
