@@ -10,32 +10,31 @@
 // Rc<T>  - Analogous to std::shared_ptr<T>. Stands for "Reference-counted". Enables shared ownership. Value is freed, when count hits zero.
 //          Note: This is single-threaded only(the counter is a plain, non-atomic integer- fast but not thread-safe)
 // Arc<T>  - Analogous to std::shared_ptr<T> (Thread-safe). Stands for Atomic reference counter. Same idea as Rc, but it uses atomic operations.
-// Weak<T> - Analogous to std::weak_ptr<T>. A weak reference i.e. it points to a value without owning it. Put simply, it 
+// Weak<T> - Analogous to std::weak_ptr<T>. A weak reference i.e. it points to a value without owning it. Put simply, it
 //           does not add to strong count and doesn't keep the value alive. You can call .upgrade() to get a real Rc/Arc, but it returns an Option(None if the value was dropped)
-// *const T / *mut T - Raw pointers. allowed only in unsafe blocks.   
+// *const T / *mut T - Raw pointers. allowed only in unsafe blocks.
 
 fn test_ownership_1() {
-    // Note: rust permits only permits a single mutable reference to a variable and 
+    // Note: rust permits only permits a single mutable reference to a variable and
     // multiple read-only references - never both simultaneously. A borrow lasts until its last use
     // (non-lexical lifetimes), not until the end of the scope
     // borrow semantics follow the `aliasing-XOR-Mutability`rule.
     println!("Example 1 ownership");
     let mut a: u8 = 42; // ownership
-    let b = &a;  // first borrow
+    let b = &a; // first borrow
     println!("ref to a - {b}"); // last use of b
     let c = &mut a; // fine b is no longer live. Not fine if below line is uncommented. `b is still active`
-    //println!("ref to a {b}"); 
+    //println!("ref to a {b}");
     *c = 43;
-    println!("mutable ref to a - {c}"); 
+    println!("mutable ref to a - {c}");
 
     // shared borrows example
     let b1 = &a;
-    let b2 = &a;  // many shared borrows can co-exist
+    let b2 = &a; // many shared borrows can co-exist
     println!("two refs- {b1} {b2}"); // both live here, fine
     let c = &mut a; // shared borrow dead - mutable ok
     *c = 44;
     println!("mutable ref to a - {c}");
-
 }
 
 fn test_borrow_lifetime_1() {
@@ -66,14 +65,13 @@ fn test_parameter_passing() {
     // 1. pass by value (copy): Typically types that can be trivially copied(ex:u8, u32, i8, i32)
     // 2. pass by reference: Analogous to pass by pointer in c. This is commonly known as borrowing.
     //                       reference can be immutable (&) or mutable(&mut)
-    // 3. by moving: This transfers ownership of the value to the function. The caller can no longer reference 
+    // 3. by moving: This transfers ownership of the value to the function. The caller can no longer reference
     //               the original value.
     println!("Example 3  Parameter passing");
     let a = 42;
     foo(&a); // by reference
     bar(a); // By value (copy)
     println!("original value a: {a}");
-
 }
 
 // fn no_dangling() -> &u32 {
@@ -87,16 +85,76 @@ fn ok_reference(a: &u32) -> &u32 {
     a // okay because, lifetime of `a` always exceeds ok_reference()
 }
 
-
 fn test_return_values() {
     println!("Example 4  return values from methods");
     // rust prohibits dangling reference from methods.
     // 1. references returned by methods must be still in scope.
     // 2. rust will automatically drop a reference when it goes out of scope.
-    let a =42; // lifetime `a` begins here
+    let a = 42; // lifetime `a` begins here
     let b = ok_reference(&a);
     // lifetime `b` ends here
     // lifetime of `a` ends here.
+}
+
+fn test_move_semantics_1() {
+    println!("Example 5  move semantics - 1");
+    // by default, rus assignment transfers ownership
+
+    let s = String::from("Hello"); // ownership starts here
+    let s1 = s; // ownership transfers to s1
+    println!("s1 - {s1}");
+    // println!("{s}"); // this will not compile as value was moved from s to s1
+    // s1 goes out of scope and the memory is deallocated
+    // s goes out of scope here, but nothing happens here, since it owns nothing
+}
+
+fn str_foo(s: String) {
+    println!("{s}");
+    // s goes out of scope and the memory is deallocated.
+}
+
+fn str_bar(s: &String) {
+    println!("{s}");
+    // s goes out of scope here, nothing happens, since it does not own anything
+}
+
+fn test_move_semantics_2() {
+    println!("Example - move semantics of complex types");
+    // String owns a heap buffer, so assignment/passing MOVES it (unlike Copy types
+    // such as u8/i32, which are duplicated bit-for-bit).
+    let s = String::from("Rust string move example");
+    str_foo(s); // ownership transfers to method parameter
+    // println!("{s}"); // compile error - s is invalid now
+    let t = String::from("Rust string borrow example");
+    str_bar(&t); // t continues to hold ownership
+    println!("{t}");
+}
+
+struct Point {
+    x: u32,
+    y: u32,
+}
+
+fn consume_point(p: Point) {
+    println!("{} {}", p.x, p.y);
+    // p goes out of scope and memory is deallocated
+}
+
+fn borrow_point(p: &Point) {
+    println!("{} {}", p.x, p.y);
+    // p goes out of scope and nothing happens, since p does not own anything
+
+}
+
+fn test_move_semantics_3() {
+    // it is possible to transfer ownership by moving.
+    // 1. it is illegal to reference outstanding references after the move is completed
+    // 2. Consider borrowing if move is not desirable
+    println!("Example - move semantics and ownership");
+    let p = Point{ x: 10, y: 20 };
+    // try flipping these 2 lines, it will result in compiler error
+    borrow_point(&p); // borrowed
+    consume_point(p); // ownership transfer
 }
 
 fn main() {
@@ -109,5 +167,11 @@ fn main() {
     test_parameter_passing();
     println!("{}", "-".repeat(20));
     test_return_values();
+    println!("{}", "-".repeat(20));
+    test_move_semantics_1();
+    println!("{}", "-".repeat(20));
+    test_move_semantics_2();
+    println!("{}", "-".repeat(20));
+    test_move_semantics_3();
     println!("{}", "-".repeat(20));
 }
