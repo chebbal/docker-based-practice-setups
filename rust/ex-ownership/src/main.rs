@@ -157,6 +157,62 @@ fn test_move_semantics_3() {
     consume_point(p); // ownership transfer
 }
 
+fn test_clone() {
+    println!("Example - Rust clone()");
+    // clone() creates a separate heap allocation.
+    let s = String::from("Rust"); // allocates string from the heap
+    let s1 = s.clone(); // copies the string, creates a new allocation on the heap
+    println!("{s1}");
+    println!("{s}");
+    // s1 goes out of scope here, memory is deallocated.
+    // s goes out of scope here, memory is deallocated.
+
+}
+
+//try commenting this out to see the change in let p1 = p; below
+#[derive(Copy, Clone, Debug)]
+struct PointWTraits {
+    x: u32,
+    y: u32,
+}
+
+fn test_copy_trait() {
+    println!("Example -  rust copy trait");
+    // 1. rust implements copy semantics for built-in types (u32, i32, etc.) using copy trait
+    // 2. user-defined types can opt-in to copy semantics using the derive macro with to automatically
+    //    implement the copy trait.
+    // 3. The compiler will allocate space for the copy following a new assignment.
+    let p = PointWTraits{x:10, y:20};
+    let p1 = p; // this will perform copy now instead of the move
+    println!("p - {p:?}");
+    println!("p1 - {p1:?}");
+    let p2 = p1.clone(); // semantically same as copy
+}
+
+
+impl Drop for Point {
+    fn drop(&mut self) {
+        println!("Goodbye point x:{} y:{}", self.x, self.y);
+    }
+}
+fn test_drop_trait() {
+    println!("Example- rust drop trait");
+    // rust automatically calls drop() methods at end of scope.
+    // -`drop` is part of generic Drop trait. The compiler provides a default NOP
+    //   implementation for all types, but types can override it.
+    // analogous to c++ dtor
+    let p = Point{x: 10, y:20};
+    {
+        let p1 = Point{x: 11, y:21};
+        println!("Exiting inner block");
+        // p1.drop() called here - like c++ end of scope destructor
+    }
+    println!("Exiting test_drop_trait");
+    //p.drop() called here
+
+
+}
+
 fn main() {
     println!("Ownership in Rust!!");
     println!("{}", "-".repeat(20));
@@ -173,5 +229,11 @@ fn main() {
     test_move_semantics_2();
     println!("{}", "-".repeat(20));
     test_move_semantics_3();
+    println!("{}", "-".repeat(20));
+    test_clone();
+    println!("{}", "-".repeat(20));
+    test_copy_trait();
+    println!("{}", "-".repeat(20));
+    test_drop_trait();
     println!("{}", "-".repeat(20));
 }
