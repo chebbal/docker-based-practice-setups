@@ -292,6 +292,60 @@ fn test_lifetime_annotations_2() {
     // p is dropped here
 }
 
+fn get_first_word(s: &str) -> &str {
+    s.split_whitespace().next().unwrap_or("")
+
+}
+
+fn test_ex_1() {
+  println!("Exercise- lifetimes");
+  println!("first word: {}", get_first_word("Hello World"));
+  assert_eq!("Hello", get_first_word("Hello World"));
+}
+
+#[derive(Debug)]
+struct SliceStore<'a> {
+    slice: &'a str,
+}
+
+impl<'a> SliceStore<'a> {
+    fn new(s :&'a str) -> Self {
+        SliceStore {slice: s}
+    }
+
+    fn get_slice(&self) -> &str {
+        self.slice
+    }
+}
+
+fn test_ex_2() {
+    println!("Exercise- lifetime annotations in data structures");
+    let s = "This is a long string";
+    let s1 = &s[0..];
+    let s2 = &s[1..=2];
+    let slice1 = SliceStore{ slice: &s1 };
+    let slice2 = SliceStore{ slice: &s2 };
+    println!("s1 = {}", slice1.get_slice());
+    println!("s2 = {}", slice2.get_slice());
+}
+
+fn test_static_lifetime() {
+    println!("Exercise- static lifetime");
+
+    // string literals are always 'static - they live in binary's read-only section
+    let s: &'static str = "hello";
+
+    // constants are also 'static
+    static GREETING: &str = "hello";
+
+    // common in trait bounds for thread spawning
+    fn spawn<F: FnOnce() + Send + 'static>(f: F) { }
+    // 'static here means" "the closure must not borrow any local variables"
+    // (either move them in, or use only 'static data)
+
+
+}
+
 fn main() {
     println!("Ownership in Rust!!");
     println!("{}", "-".repeat(20));
@@ -320,5 +374,11 @@ fn main() {
     test_lifetime_annotations();
     println!("{}", "-".repeat(20));
     test_lifetime_annotations_2();
+    println!("{}", "-".repeat(20));
+    test_ex_1();
+    println!("{}", "-".repeat(20));
+    test_ex_2();
+    println!("{}", "-".repeat(20));
+    test_static_lifetime();
     println!("{}", "-".repeat(20));
 }
