@@ -32,11 +32,33 @@ fn test_rust_ownership() {
     // moved_data automatically freed when it goes out of scope.
 }
 
+fn test_borrowing_rules() {
+    println!("Example - smart pointer borrowing rules");
+
+    let mut data = vec![1, 2, 3, 4, 5];
+
+    // multiple immutable borrows - ok
+    let ref1 = &data;
+    let ref2 = &data;
+    println!("{:?} {:?}", ref1, ref2);
+
+    // mutable borrow - exclusive access
+    let ref_mut = &mut data;
+    ref_mut.push(6);
+    // ref1 and ref2 cannot be used, since ref_mut is active.
+
+    // After ref_mut is done, immutable borrow works again
+    let ref3 = &data;
+    println!("{:?}", ref3);
+}
+
 fn main() {
     println!("Example - Ownership Smart Pointers");
     println!("{}", "-".repeat(20));
     test_box_ptr();
     println!("{}", "-".repeat(20));
     test_rust_ownership();
+    println!("{}", "-".repeat(20));
+    test_borrowing_rules();
     println!("{}", "-".repeat(20));
 }
