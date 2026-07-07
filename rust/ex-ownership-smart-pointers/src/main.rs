@@ -6,6 +6,8 @@ fn test_box_ptr() {
 
     // cloning a box creates a new heap allocation.
     let mut g = f.clone();
+    // explicit `*` is mainly needed when you write through the pointer. 
+    // For reads and method/field access, Rust auto-derefs.
     *g = 43;
     println!("{f} {g}");
     // g and f go out of scope and are automatically deallocated.
