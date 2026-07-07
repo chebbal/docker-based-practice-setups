@@ -262,6 +262,36 @@ fn test_lifetime_annotations() {
     // println!("After scope: {result:?}")
 }
 
+
+fn test_lifetime_annotations_2() {
+    println!("Example - lifetime annotation inside data structures");
+    // lifetime annotation are also needed for references in data structures.
+    use std::collections::HashMap;
+
+    #[derive(Debug)]
+    struct Point {x: u32, y: u32}
+    struct Lookup<'a> {
+        map: HashMap<u32,&'a Point>,
+    }
+
+    let p = Point{x:42, y:42};
+    let p1= Point{x:50, y:50};
+    let mut m = Lookup {map: HashMap::new()};
+    m.map.insert(0, &p);
+    m.map.insert(1, &p1);
+    {
+        let p3 = Point {x: 10, y:20};
+        // m.map.insert(2, &p3); // will not compile
+        // p3 will be dropped here
+    }
+    for (k,v) in m.map {
+        println!("{v:?}");
+    }
+    // m is dropped here
+    // p1 is dropped here
+    // p is dropped here
+}
+
 fn main() {
     println!("Ownership in Rust!!");
     println!("{}", "-".repeat(20));
@@ -288,5 +318,7 @@ fn main() {
     test_rust_implicit_lifetime();
     println!("{}", "-".repeat(20));
     test_lifetime_annotations();
+    println!("{}", "-".repeat(20));
+    test_lifetime_annotations_2();
     println!("{}", "-".repeat(20));
 }
