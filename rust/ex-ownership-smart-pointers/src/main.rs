@@ -6,7 +6,7 @@ fn test_box_ptr() {
 
     // cloning a box creates a new heap allocation.
     let mut g = f.clone();
-    // explicit `*` is mainly needed when you write through the pointer. 
+    // explicit `*` is mainly needed when you write through the pointer.
     // For reads and method/field access, Rust auto-derefs.
     *g = 43;
     println!("{f} {g}");
@@ -52,6 +52,56 @@ fn test_borrowing_rules() {
     println!("{:?}", ref3);
 }
 
+use std::cell::{Cell, RefCell};
+struct Employee {
+    emp_id: u64,             // immutable, can't be changed behind &
+    on_vacation: Cell<bool>, // write-access permitted even though a shared &
+}
+
+fn test_field_level_mutability() {
+    println!("Example - field level interior immutability");
+
+    let emp = Employee {
+        emp_id: 1001,
+        on_vacation: Cell::new(false),
+    };
+
+    // Note: emp is immutable
+    let e = &emp;
+
+    e.on_vacation.set(true);
+    println!("on vacation? {}", e.on_vacation.get()); // true
+
+    // e.emp_id = 1002; // compiler error, emp not mutable and emp_id is not Cell
+    // println!("id: {}", e.emp_id); // true
+}
+
+fn test_cell_refcell() {
+        // --- RefCell<T>: for non-Copy types. Hands out real borrows via
+    //    --- Cell<T>: for Copy types. No references to the inner value are handed
+    //     out — you swap whole values in/out, so it can't be misused. Zero cost.
+
+    // --- RefCell<T>: for non-Copy types. Hands out real borrows via
+    //     .borrow() / .borrow_mut(), tracked at runtime.
+
+    println!("Example - internal mutability via cell/Refcell");
+    let counter = Cell::new(0);
+    let inc = || counter.set(counter.get() + 1); // closure holds &counter, still mutates
+    inc();
+    inc();
+    assert_eq!(2, counter.get());
+    println!("cell = {}", counter.get()); //2
+
+    let log = RefCell::new(Vec::new());
+    log.borrow_mut().push("first"); // &mut to the Vec, through a shared &
+    log.borrow_mut().push("second");
+    println!("refcell = {:?}", log.borrow()); // immutable reference
+
+    // the catch: violate borrow rules -> panic at runtime, not compile error
+    let _read = log.borrow();
+    // log.borrow_mut(); // <- would panic: already borrowed
+}
+
 fn main() {
     println!("Example - Ownership Smart Pointers");
     println!("{}", "-".repeat(20));
@@ -60,5 +110,9 @@ fn main() {
     test_rust_ownership();
     println!("{}", "-".repeat(20));
     test_borrowing_rules();
+    println!("{}", "-".repeat(20));
+    test_field_level_mutability();
+    println!("{}", "-".repeat(20));
+    test_cell_refcell();
     println!("{}", "-".repeat(20));
 }
