@@ -53,6 +53,7 @@ fn test_borrowing_rules() {
 }
 
 use std::cell::{Cell, RefCell};
+#[derive(Debug)]
 struct Employee {
     emp_id: u64,             // immutable, can't be changed behind &
     on_vacation: Cell<bool>, // write-access permitted even though a shared &
@@ -102,6 +103,51 @@ fn test_cell_refcell() {
     // log.borrow_mut(); // <- would panic: already borrowed
 }
 
+fn without_rc() {
+    println!("Without using Rc");
+    let mut us_employees = vec![];
+    let mut global_employees = Vec::<Employee>::new();
+    let employee = Employee {emp_id: 1001, on_vacation:Cell::<bool>::new(false)};
+    us_employees.push(employee);
+    println!("us_employees: {us_employees:?}");
+    // won't compile - as employee is already moved
+    // global_employees.push(employee);
+
+}
+
+fn with_rc() {
+    println!("Using Rc");
+    use std::rc::Rc;
+    let mut us_employees = vec![];
+    let mut global_employees = vec![];
+    // employee leaves on stack
+    let employee = Employee {emp_id: 1001, on_vacation: Cell::<bool>::new(false)};
+    let employee_rc = Rc::new(employee); // employee moved to Rc on heap
+    us_employees.push(employee_rc.clone());
+    println!("us_employees: {us_employees:?}");
+    global_employees.push(employee_rc.clone());
+    println!("global_employees: {global_employees:?}");
+}
+
+fn rc_simple_example() {
+    println!("Rc simple example");
+    use std::rc::Rc;
+    let a = Rc::new(String::from("hi")); // strong ref ->1
+    println!("strong ref: {}", Rc::strong_count(&a)); // 1
+    let b = Rc::clone(&a); // strong ref -> 2
+    println!("strong ref: {}", Rc::strong_count(&a)); // 2
+    drop(b);
+    println!("strong ref: {}", Rc::strong_count(&a)); // 1
+    // end of scope: strong 1 -> 0, String dropped, allocation freed.
+}
+
+fn test_rc() {
+    println!("Example - Rc(shared_ptr) test");
+    // Rc<T> allows reference counted shared ownership of immutable data.
+    without_rc();
+    with_rc();
+}
+
 fn main() {
     println!("Example - Ownership Smart Pointers");
     println!("{}", "-".repeat(20));
@@ -114,5 +160,9 @@ fn main() {
     test_field_level_mutability();
     println!("{}", "-".repeat(20));
     test_cell_refcell();
+    println!("{}", "-".repeat(20));
+    test_rc();
+    println!("{}", "-".repeat(20));
+    rc_simple_example();
     println!("{}", "-".repeat(20));
 }
