@@ -78,7 +78,7 @@ fn test_field_level_mutability() {
 }
 
 fn test_cell_refcell() {
-        // --- RefCell<T>: for non-Copy types. Hands out real borrows via
+    // --- RefCell<T>: for non-Copy types. Hands out real borrows via
     //    --- Cell<T>: for Copy types. No references to the inner value are handed
     //     out — you swap whole values in/out, so it can't be misused. Zero cost.
 
@@ -107,12 +107,14 @@ fn without_rc() {
     println!("Without using Rc");
     let mut us_employees = vec![];
     let mut global_employees = Vec::<Employee>::new();
-    let employee = Employee {emp_id: 1001, on_vacation:Cell::<bool>::new(false)};
+    let employee = Employee {
+        emp_id: 1001,
+        on_vacation: Cell::<bool>::new(false),
+    };
     us_employees.push(employee);
     println!("us_employees: {us_employees:?}");
     // won't compile - as employee is already moved
     // global_employees.push(employee);
-
 }
 
 fn with_rc() {
@@ -121,7 +123,10 @@ fn with_rc() {
     let mut us_employees = vec![];
     let mut global_employees = vec![];
     // employee leaves on stack
-    let employee = Employee {emp_id: 1001, on_vacation: Cell::<bool>::new(false)};
+    let employee = Employee {
+        emp_id: 1001,
+        on_vacation: Cell::<bool>::new(false),
+    };
     let employee_rc = Rc::new(employee); // employee moved to Rc on heap
     us_employees.push(employee_rc.clone());
     println!("us_employees: {us_employees:?}");
@@ -157,8 +162,11 @@ struct Node {
 fn test_weak_ptr() {
     println!("Example- weak ptr");
     // use `weak` for back-references in tree/graph to avoid memory leaks
-    let parent = Rc::new(Node {value: 1, parent: None} );
-    let child = Rc:: new(Node {
+    let parent = Rc::new(Node {
+        value: 1,
+        parent: None,
+    });
+    let child = Rc::new(Node {
         value: 2,
         parent: Some(Rc::downgrade(&parent)), // weak ref to a parent
     });
@@ -171,16 +179,15 @@ fn test_weak_ptr() {
     println!("Parent strong count: {}", Rc::strong_count(&parent));
 }
 
-
 #[derive(Debug)]
 struct Emp {
     id: u64,
-    name: RefCell<String>, // non-copyable types
+    name: RefCell<String>,   // non-copyable types
     on_vacation: Cell<bool>, // copyable type
 }
 
 fn toggle_vacation(e: &Emp) {
-    e.on_vacation.set(! e.on_vacation.get());
+    e.on_vacation.set(!e.on_vacation.get());
 }
 
 fn append_title(e: &Emp, title: &str) {
@@ -190,34 +197,27 @@ fn append_title(e: &Emp, title: &str) {
 fn test_shared_ownership_and_interior_mutability() {
     println!("Exercise - shared ownership and interior mutability");
     let employee = Emp {
-        id: 1, 
+        id: 1,
         name: RefCell::new(String::from("Joe")),
         on_vacation: Cell::new(false),
     };
 
+    let emp_rc = Rc::new(employee);
     // task 2 - mutate a field in a immutable struct
-    toggle_vacation(&employee);
+    toggle_vacation(&emp_rc);
 
     //task3 - mutate name
-    append_title(&employee, ", Sr. Engineer");
+    append_title(&emp_rc, ", Sr. Engineer");
 
-    let emp_rc = Rc::new(employee);
     let mut us_emps = vec![];
     let mut global_emps = vec![];
-
-
 
     //task 1
     us_emps.push(emp_rc.clone()); // ref count 2
     global_emps.push(emp_rc.clone()); // ref count 3
     println!("{us_emps:?} \n {global_emps:?}");
     println!("emp ref count: {}", Rc::strong_count(&emp_rc));
-
-
-
 }
-
-
 
 fn main() {
     println!("Example - Ownership Smart Pointers");
