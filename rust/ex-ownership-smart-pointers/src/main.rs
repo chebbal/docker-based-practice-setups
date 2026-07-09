@@ -171,6 +171,54 @@ fn test_weak_ptr() {
     println!("Parent strong count: {}", Rc::strong_count(&parent));
 }
 
+
+#[derive(Debug)]
+struct Emp {
+    id: u64,
+    name: RefCell<String>, // non-copyable types
+    on_vacation: Cell<bool>, // copyable type
+}
+
+fn toggle_vacation(e: &Emp) {
+    e.on_vacation.set(! e.on_vacation.get());
+}
+
+fn append_title(e: &Emp, title: &str) {
+    e.name.borrow_mut().push_str(title);
+}
+
+fn test_shared_ownership_and_interior_mutability() {
+    println!("Exercise - shared ownership and interior mutability");
+    let employee = Emp {
+        id: 1, 
+        name: RefCell::new(String::from("Joe")),
+        on_vacation: Cell::new(false),
+    };
+
+    // task 2 - mutate a field in a immutable struct
+    toggle_vacation(&employee);
+
+    //task3 - mutate name
+    append_title(&employee, ", Sr. Engineer");
+
+    let emp_rc = Rc::new(employee);
+    let mut us_emps = vec![];
+    let mut global_emps = vec![];
+
+
+
+    //task 1
+    us_emps.push(emp_rc.clone()); // ref count 2
+    global_emps.push(emp_rc.clone()); // ref count 3
+    println!("{us_emps:?} \n {global_emps:?}");
+    println!("emp ref count: {}", Rc::strong_count(&emp_rc));
+
+
+
+}
+
+
+
 fn main() {
     println!("Example - Ownership Smart Pointers");
     println!("{}", "-".repeat(20));
@@ -189,5 +237,7 @@ fn main() {
     rc_simple_example();
     println!("{}", "-".repeat(20));
     test_weak_ptr();
+    println!("{}", "-".repeat(20));
+    test_shared_ownership_and_interior_mutability();
     println!("{}", "-".repeat(20));
 }
