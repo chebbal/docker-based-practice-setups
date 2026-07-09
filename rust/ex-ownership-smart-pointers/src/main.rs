@@ -148,6 +148,29 @@ fn test_rc() {
     with_rc();
 }
 
+use std::rc::{Rc, Weak};
+struct Node {
+    value: i32,
+    parent: Option<Weak<Node>>, // weak reference, doesn't prevent drop
+}
+
+fn test_weak_ptr() {
+    println!("Example- weak ptr");
+    // use `weak` for back-references in tree/graph to avoid memory leaks
+    let parent = Rc::new(Node {value: 1, parent: None} );
+    let child = Rc:: new(Node {
+        value: 2,
+        parent: Some(Rc::downgrade(&parent)), // weak ref to a parent
+    });
+
+    // To use a weak, try to upgrade it - returns Option<Rc<T>>
+    if let Some(parent_rc) = child.parent.as_ref().unwrap().upgrade() {
+        println!("Parent value: {}", parent_rc.value);
+    }
+
+    println!("Parent strong count: {}", Rc::strong_count(&parent));
+}
+
 fn main() {
     println!("Example - Ownership Smart Pointers");
     println!("{}", "-".repeat(20));
@@ -164,5 +187,7 @@ fn main() {
     test_rc();
     println!("{}", "-".repeat(20));
     rc_simple_example();
+    println!("{}", "-".repeat(20));
+    test_weak_ptr();
     println!("{}", "-".repeat(20));
 }
