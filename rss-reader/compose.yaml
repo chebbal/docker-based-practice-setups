@@ -13,6 +13,12 @@ services:
       - rss-data:/data
     environment:
       RSS_DB_PATH: /data/rss.db
+    # Cap logs so they can't fill the disk: 3 rotated files x 10MB = 30MB max.
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 volumes:
   rss-data:
