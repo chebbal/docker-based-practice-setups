@@ -29,7 +29,29 @@ def _row_to_dict(row) -> dict:
     return dict(row)
 
 
+def _split_tags(value) -> list[str]:
+    if not value:
+        return []
+    return [t for t in value.split(db.TAG_SEP) if t]
+
+
+def _article(row) -> dict:
+    d = dict(row)
+    d["tags"] = _split_tags(d.get("tags"))
+    return d
+
+
+def _like_tag(tag: str) -> str:
+    esc = tag.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+    return f"%{db.TAG_SEP}{esc}{db.TAG_SEP}%"
+
+
 # ---- pages -----------------------------------------------------------------
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
+
 @app.get("/")
 def reader_page():
     return FileResponse(STATIC_DIR / "reader.html")
@@ -93,14 +115,35 @@ async def refresh_all():
     return {"refreshed": len(results), "results": results}
 
 
+# ---- tags api --------------------------------------------------------------
+@app.get("/api/tags")
+def list_tags(feed_id: int | None = None):
+    clause, params = ("WHERE feed_id = ?", [feed_id]) if feed_id is not None else ("", [])
+    counts: dict[str, int] = {}
+    with db.connect() as conn:
+        rows = conn.execute(
+            f"SELECT tags FROM articles {clause}", params
+        ).fetchall()
+    for r in rows:
+        for tag in _split_tags(r["tags"]):
+            counts[tag] = counts.get(tag, 0) + 1
+    return [
+        {"tag": t, "count": c}
+        for t, c in sorted(counts.items(), key=lambda kv: (-kv[1], kv[0].lower()))
+    ]
+
+
 # ---- articles api ----------------------------------------------------------
 @app.get("/api/articles")
-def list_articles(feed_id: int | None = None, unread: bool = False,
-                  limit: int = 50, offset: int = 0):
+def list_articles(feed_id: int | None = None, tag: str | None = None,
+                  unread: bool = False, limit: int = 50, offset: int = 0):
     clauses, params = [], []
     if feed_id is not None:
         clauses.append("a.feed_id = ?")
         params.append(feed_id)
+    if tag:
+        clauses.append("a.tags LIKE ? ESCAPE '\\'")
+        params.append(_like_tag(tag))
     if unread:
         clauses.append("a.read = 0")
     where = f"WHERE {' AND '.join(clauses)}" if clauses else ""
@@ -108,14 +151,14 @@ def list_articles(feed_id: int | None = None, unread: bool = False,
     with db.connect() as conn:
         rows = conn.execute(
             f"""SELECT a.id, a.feed_id, a.title, a.link, a.author, a.summary,
-                       a.published, a.read, f.title AS feed_title
+                       a.published, a.read, a.tags, f.title AS feed_title
                 FROM articles a JOIN feeds f ON f.id = a.feed_id
                 {where}
                 ORDER BY a.published DESC, a.id DESC
                 LIMIT ? OFFSET ?""",
             params,
         ).fetchall()
-    return [_row_to_dict(r) for r in rows]
+    return [_article(r) for r in rows]
 
 
 @app.get("/api/articles/{article_id}")
@@ -129,7 +172,7 @@ def get_article(article_id: int):
         if row is None:
             raise HTTPException(404, "Article not found")
         conn.execute("UPDATE articles SET read = 1 WHERE id = ?", (article_id,))
-    return _row_to_dict(row)
+    return _article(row)
 
 
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")

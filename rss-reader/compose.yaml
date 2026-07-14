@@ -1,0 +1,18 @@
+services:
+  rss-reader:
+    build: .
+    image: rss-reader:latest
+    container_name: rss-reader
+    restart: unless-stopped
+    # Bound to localhost by default so the app is NOT exposed to the internet
+    # until you put a reverse proxy (with TLS/auth) in front, or a VPN.
+    # To reach it directly over a private network, change to "8000:8000".
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - rss-data:/data
+    environment:
+      RSS_DB_PATH: /data/rss.db
+
+volumes:
+  rss-data:

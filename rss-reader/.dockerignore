@@ -1,0 +1,8 @@
+.venv/
+__pycache__/
+*.pyc
+rss.db
+.git/
+.gitignore
+README.md
+*.log

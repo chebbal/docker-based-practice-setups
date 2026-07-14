@@ -30,6 +30,20 @@ def _entry_content(entry) -> str:
     return entry.get("summary", "")
 
 
+def _entry_tags(entry) -> str | None:
+    seen, tags = set(), []
+    for t in entry.get("tags", []):
+        term = (t.get("term") or "").strip()
+        key = term.lower()
+        if term and db.TAG_SEP not in term and key not in seen:
+            seen.add(key)
+            tags.append(term)
+    if not tags:
+        return None
+    # surround-delimited (…\x1ftag\x1f…) so a tag matches with a plain LIKE
+    return db.TAG_SEP + db.TAG_SEP.join(tags) + db.TAG_SEP
+
+
 async def _fetch_bytes(url: str) -> bytes:
     async with httpx.AsyncClient(
         follow_redirects=True, timeout=15, headers={"User-Agent": USER_AGENT}
@@ -74,8 +88,8 @@ async def fetch_feed(feed_id: int, url: str) -> dict:
         for entry in parsed.entries:
             cur = conn.execute(
                 """INSERT OR IGNORE INTO articles
-                   (feed_id, guid, title, link, author, summary, content, published, fetched_at)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                   (feed_id, guid, title, link, author, summary, content, published, fetched_at, tags)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 (
                     feed_id,
                     _entry_guid(entry),
@@ -86,6 +100,7 @@ async def fetch_feed(feed_id: int, url: str) -> dict:
                     _entry_content(entry),
                     _entry_published(entry),
                     now,
+                    _entry_tags(entry),
                 ),
             )
             new_count += cur.rowcount
