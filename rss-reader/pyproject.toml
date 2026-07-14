@@ -1,0 +1,15 @@
+[project]
+name = "rss-reader"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.139.0",
+    "feedparser>=6.0.12",
+    "httpx>=0.28.1",
+    "uvicorn[standard]>=0.51.0",
+]
+
+[project.scripts]
+rss = "app.cli:main"

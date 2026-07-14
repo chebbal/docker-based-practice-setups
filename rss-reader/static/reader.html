@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RSS Reader</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header class="topbar">
+  <h1><span class="brand">◆</span> RSS Reader</h1>
+  <nav>
+    <a href="/" class="active">Reader</a>
+    <a href="/dashboard">Dashboard</a>
+  </nav>
+  <div class="spacer"></div>
+  <button id="refreshBtn">↻ Refresh</button>
+</header>
+
+<div class="reader">
+  <div class="col feeds">
+    <h2>Feeds</h2>
+    <div id="feedList"></div>
+  </div>
+  <div class="col list">
+    <h2 id="listTitle">Articles</h2>
+    <div id="articleList"></div>
+  </div>
+  <div class="col content">
+    <div id="content"><div class="empty">Select an article to read.</div></div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+<script src="/static/reader.js"></script>
+</body>
+</html>
