@@ -1,0 +1,22 @@
+{
+	email {$ACME_EMAIL}
+}
+
+# Automatic HTTPS (Let's Encrypt) for the domain, HTTP Basic auth on everything,
+# then reverse-proxy to the app container on the internal network.
+{$DOMAIN} {
+	encode zstd gzip
+
+	basic_auth {
+		{$BASIC_AUTH_USER} {$BASIC_AUTH_HASH}
+	}
+
+	reverse_proxy rss-reader:8000
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "SAMEORIGIN"
+		Referrer-Policy "strict-origin-when-cross-origin"
+	}
+}

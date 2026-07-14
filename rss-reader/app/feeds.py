@@ -1,5 +1,8 @@
 import asyncio
+import ipaddress
+import socket
 from datetime import datetime, timezone
+from urllib.parse import urlparse
 
 import feedparser
 import httpx
@@ -7,6 +10,32 @@ import httpx
 from . import db
 
 USER_AGENT = "rss-reader/0.1 (+personal)"
+MAX_REDIRECTS = 5
+
+
+class FeedError(Exception):
+    """Raised when a feed URL is unsafe or unfetchable."""
+
+
+def _assert_public_url(url: str) -> None:
+    """Reject non-http(s) schemes and any host that resolves to a
+    private / loopback / link-local / reserved address (SSRF guard)."""
+    parsed = urlparse(url)
+    if parsed.scheme not in ("http", "https"):
+        raise FeedError(f"Blocked URL scheme: {parsed.scheme or '(none)'}")
+    host = parsed.hostname
+    if not host:
+        raise FeedError("URL has no host")
+    try:
+        infos = socket.getaddrinfo(host, parsed.port or 0, proto=socket.IPPROTO_TCP)
+    except socket.gaierror:
+        raise FeedError(f"Cannot resolve host: {host}")
+    for info in infos:
+        ip = ipaddress.ip_address(info[4][0])
+        if (ip.is_private or ip.is_loopback or ip.is_link_local
+                or ip.is_reserved or ip.is_multicast or ip.is_unspecified):
+            # blocks 127.0.0.1, 10/172.16/192.168, 169.254.169.254 (cloud metadata), etc.
+            raise FeedError(f"Blocked non-public address for {host}: {ip}")
 
 
 def _now() -> str:
@@ -45,12 +74,20 @@ def _entry_tags(entry) -> str | None:
 
 
 async def _fetch_bytes(url: str) -> bytes:
+    # Follow redirects manually so every hop is re-validated against the SSRF
+    # guard (a public URL could otherwise redirect to a private/metadata IP).
     async with httpx.AsyncClient(
-        follow_redirects=True, timeout=15, headers={"User-Agent": USER_AGENT}
+        follow_redirects=False, timeout=15, headers={"User-Agent": USER_AGENT}
     ) as client:
-        resp = await client.get(url)
-        resp.raise_for_status()
-        return resp.content
+        for _ in range(MAX_REDIRECTS + 1):
+            await asyncio.to_thread(_assert_public_url, url)
+            resp = await client.get(url)
+            if resp.is_redirect:
+                url = str(resp.url.join(resp.headers["location"]))
+                continue
+            resp.raise_for_status()
+            return resp.content
+    raise FeedError(f"Too many redirects (>{MAX_REDIRECTS})")
 
 
 async def fetch_feed(feed_id: int, url: str) -> dict:

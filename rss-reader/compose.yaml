@@ -4,16 +4,52 @@ services:
     image: rss-reader:latest
     container_name: rss-reader
     restart: unless-stopped
-    # Bound to localhost by default so the app is NOT exposed to the internet
-    # until you put a reverse proxy (with TLS/auth) in front, or a VPN.
-    # To reach it directly over a private network, change to "8000:8000".
-    ports:
-      - "127.0.0.1:8000:8000"
+    # Internal only: reachable by Caddy on the compose network, NOT published
+    # to the host. (For private/no-domain use, comment out the caddy service
+    # and add:  ports: ["127.0.0.1:8000:8000"]  here.)
+    expose:
+      - "8000"
     volumes:
       - rss-data:/data
     environment:
       RSS_DB_PATH: /data/rss.db
-    # Cap logs so they can't fill the disk: 3 rotated files x 10MB = 30MB max.
+    # --- container hardening ---
+    read_only: true              # immutable rootfs; DB writes go to the /data volume
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true   # block setuid privilege escalation
+    cap_drop:
+      - ALL                      # app needs no Linux capabilities
+    mem_limit: 256m
+    pids_limit: 256
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  caddy:
+    image: caddy:2
+    container_name: caddy
+    restart: unless-stopped
+    depends_on:
+      - rss-reader
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"            # HTTP/3
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data         # persists TLS certs — do not delete
+      - caddy-config:/config
+    environment:
+      DOMAIN: ${DOMAIN:?set DOMAIN in .env}
+      ACME_EMAIL: ${ACME_EMAIL:?set ACME_EMAIL in .env}
+      BASIC_AUTH_USER: ${BASIC_AUTH_USER:?set BASIC_AUTH_USER in .env}
+      BASIC_AUTH_HASH: ${BASIC_AUTH_HASH:?set BASIC_AUTH_HASH in .env}
+    security_opt:
+      - no-new-privileges:true
     logging:
       driver: json-file
       options:
@@ -22,3 +58,5 @@ services:
 
 volumes:
   rss-data:
+  caddy-data:
+  caddy-config:
