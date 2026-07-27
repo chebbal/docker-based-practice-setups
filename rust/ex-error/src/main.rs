@@ -6,21 +6,20 @@ fn test_option_type() {
         Some(a) => println!("found index at {a}"),
         None => println!("Couldn't find 1"),
     }
-    // Option<T> can be processed with unwrap(), unwrap_or() and `if let` 
+    // Option<T> can be processed with unwrap(), unwrap_or() and `if let`
     // lets us test for Some<T>
     println!("{a:?} {}", a.unwrap());
     let a = "1234".find("5").or(Some(42));
     println!("{a:?}");
     if let Some(a) = "1234".find("1") {
         println!("{a}");
-    }
-    else {
+    } else {
         println!("Not found in string");
     }
 
     // this will panic
     // "1234".find("5").unwrap();
-    // this will not panic 
+    // this will not panic
     "1234".find("5").unwrap_or(42);
 }
 
@@ -47,6 +46,34 @@ fn test_result_type() {
     // "1234z".parse().unwrap();
 }
 
+fn test_option_and_result() {
+    println!("Example - relation between Option and Result");
+    // Option<T> <==> Result<T, ()> i.e. a result where error carries no
+    // information
+    let opt: Option<i32> = Some(42);
+    let res: Result<i32, &str> = opt.ok_or("Value was None"); // option -> result
+    match res {
+        Ok(a) => println!("Value: {a:?}"),
+        Err(e) => println!("Error: {e:?}"),
+    }
+
+    let res: Result<i32, &str> = Ok(42);
+    let opt: Option<i32> = res.ok(); // result -> option (discards error)
+    // They share many of the same methods:
+    // .map(), .and_then(), .unwrap_or(), .unwrap_or_else(), .is_some()/is_ok()
+    match opt {
+        Some(a) => println!("{a:?}"),
+        None => println!("No value"),
+    }
+
+    // Rule of thumb, Use Option when absence is normal,
+    // Use Result, when failure needs explanation (like file I/O parsing)
+}
+
+fn test_error_handling_1() {
+    println!("Example - rust error handling 1");
+}
+
 fn main() {
     println!("Exercise - Error handling");
     // In rust there are no null pointers. Option<T> should be used.
@@ -67,5 +94,9 @@ fn main() {
     test_option_type();
     println!("{}", "-".repeat(20));
     test_result_type();
+    println!("{}", "-".repeat(20));
+    test_option_and_result();
+    println!("{}", "-".repeat(20));
+    test_error_handling_1();
     println!("{}", "-".repeat(20));
 }
