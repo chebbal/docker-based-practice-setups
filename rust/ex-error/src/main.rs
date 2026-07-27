@@ -92,6 +92,39 @@ fn test_error_handling_1() {
     }
 }
 
+fn test_error_handling_2() {
+    println!("Example - rust error handling 2");
+
+    let x = "1234x".parse::<u32>();
+    match x {
+        Ok(x) => println!("Parsed number {x}"),
+        Err(e) => println!("Parsing error {e:?}"),
+    }
+
+    // same as above, but with valid number
+    let x = "1234".parse::<u32>();
+    if let Ok(x) = &x {
+        println!("Parsed number {x}");
+    } else if let Err(e) = &x {
+        println!("Error {e:?}");
+    }
+}
+
+fn double_string_number(num: &str) -> Result<u32, std::num::ParseIntError> {
+    let x  = num.parse::<u32>()?; // returns immediately in case of an error
+    Ok(x*2)
+}
+
+fn test_error_handling_3() {
+    println!("Example - rust error handling 3");
+    // The try-operator ? is a convenient short hand for the match Ok / Err pattern
+    // Note the method must return Result<T, E> to enable use of ?
+    let result = double_string_number("1234");
+    println!("{result:?}");
+    let result = double_string_number("1234x");
+    println!("{result:?}");
+}
+
 fn main() {
     println!("Exercise - Error handling");
     // In rust there are no null pointers. Option<T> should be used.
@@ -116,5 +149,9 @@ fn main() {
     test_option_and_result();
     println!("{}", "-".repeat(20));
     test_error_handling_1();
+    println!("{}", "-".repeat(20));
+    test_error_handling_2();
+    println!("{}", "-".repeat(20));
+    test_error_handling_3();
     println!("{}", "-".repeat(20));
 }
