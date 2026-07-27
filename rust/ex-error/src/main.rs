@@ -58,7 +58,7 @@ fn test_option_and_result() {
     }
 
     let res: Result<i32, &str> = Ok(42);
-    let opt: Option<i32> = res.ok(); // result -> option (discards error)
+    let opt: Option<i32> = res.ok(); // result -> option (discards error - Err(e))
     // They share many of the same methods:
     // .map(), .and_then(), .unwrap_or(), .unwrap_or_else(), .is_some()/is_ok()
     match opt {
@@ -115,6 +115,23 @@ fn double_string_number(num: &str) -> Result<u32, std::num::ParseIntError> {
     Ok(x*2)
 }
 
+fn double_string_number_2(num: &str) -> Result<u32, ()> {
+    // changes the error type to () in case of error
+    let x = num.parse::<u32>().map_err(|_|())?;
+    Ok(x * 2)
+}
+
+fn double_string_number_3(num: &str) -> Result<u32, ()> {
+    // returns default value in case of error
+    let x = num.parse::<u32>().unwrap_or_default();
+    Ok(x * 2)
+}
+
+fn double_optional_number(num: Option<u32>) -> Result<u32, ()> {
+    // ok_or converts Option<None> to Result<u32,()>
+    num.ok_or(()).map(|x|x*2) // note: .map is applied only on Ok(u32)
+}
+
 fn test_error_handling_3() {
     println!("Example - rust error handling 3");
     // The try-operator ? is a convenient short hand for the match Ok / Err pattern
@@ -123,7 +140,20 @@ fn test_error_handling_3() {
     println!("{result:?}");
     let result = double_string_number("1234x");
     println!("{result:?}");
+    // Errors can be mapped to other types, or to default values 
+    // (https://doc.rust-lang.org/std/result/enum.Result.html#method.unwrap_or_default)
+    let result = double_string_number_2("1234x");
+    println!("{result:?}");
+    let result = double_string_number_3("1234x");
+    println!("{result:?}");
+    let result = double_optional_number(None);
+    println!("{result:?}");
+    let result = double_optional_number(Some(1234));
+    println!("{result:?}");
+
 }
+
+
 
 fn main() {
     println!("Exercise - Error handling");
