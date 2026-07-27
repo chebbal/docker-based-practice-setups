@@ -6,3 +6,16 @@ edition = "2024"
 [dependencies]
 hellolib = {path = "../hellolib"}
 rand = {version = "0.10.0"}
+
+# In C, you pass -O0, -O2, -Os, -flto to gcc/clang. In Rust, you configure build profiles in Cargo.toml
+
+[profile.dev]
+opt-level = 0
+debug = true
+
+[profile.release]
+opt-level = 3
+lto = "fat"  # link-time optimization
+strip = true # strip symbols
+codegen-units = 1 # single codegen unit - slower compile, better optimization
+panic = "abort"   # no unwind tables (smaller binary)
