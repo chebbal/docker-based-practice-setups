@@ -25,7 +25,26 @@ fn test_option_type() {
 }
 
 fn test_result_type() {
+    println!("Example - test Result<T> type");
+    // Result<T> is extensively used in Rust API's that can fail.
+    // On success, functions will return Ok<T> or they will return
+    // a specific Err<T>
 
+    use std::num::ParseIntError;
+    let a: Result<i32, ParseIntError> = "1234z".parse();
+    match a {
+        Ok(n) => println!("Parsed {n}"),
+        Err(e) => println!("Parsing failed {e:?}"),
+    }
+
+    let a: Result<i32, ParseIntError> = "1234z".parse().or(Ok(-1));
+    println!("{a:?}");
+    if let Ok(a) = "1234".parse::<i32>() {
+        println!("Let Ok {a}");
+    }
+
+    // this will panic
+    // "1234z".parse().unwrap();
 }
 
 fn main() {
@@ -46,5 +65,7 @@ fn main() {
 
     println!("{}", "-".repeat(20));
     test_option_type();
+    println!("{}", "-".repeat(20));
+    test_result_type();
     println!("{}", "-".repeat(20));
 }
