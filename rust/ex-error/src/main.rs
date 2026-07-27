@@ -70,8 +70,26 @@ fn test_option_and_result() {
     // Use Result, when failure needs explanation (like file I/O parsing)
 }
 
+use std::fs::File;
+use std::io::Read;
+
+fn read_file_content(filename: &str) -> Result<String, std::io::Error> {
+    let mut file = File::open(filename)?; // ? automatically propagates errors
+    let mut contents = String::new();
+    file.read_to_string(&mut contents)?;
+    Ok(contents)
+}
+
 fn test_error_handling_1() {
     println!("Example - rust error handling 1");
+    // In Rust errors are either recoverable (Result<T, E>) or
+    // unrecoverable (panic!). Prefer Result; reserve panics for
+    // broken invariants. panic!/assert! are ways to *raise* a panic.
+    match read_file_content("example.txt") {
+        Ok(content) => println!("File content {}", content),
+        Err(e) => println!("Failed to read file: {}", e),
+        // compiler forces us to handle both the cases
+    }
 }
 
 fn main() {
