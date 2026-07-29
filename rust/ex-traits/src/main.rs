@@ -70,6 +70,30 @@ fn test_trait_3() {
     println!("sum: {}",add_and_print(40, 2));
 }
 
+// C++ operator overloading --> Rust std::ops/ std::fmt Traits
+// In C++, you overload operators by writing free functions or member functions
+// with special names (operator>, operator+ etc.). In rust, every operator maps to
+// a trait in std::ops (or std::fmt for output). you implement that trait instead of 
+// writing a magic-named function.
+// use std::ops::Add;
+#[derive(Debug, Clone, Copy)]
+struct Vec2 {x: f64, y: f64}
+
+impl Add for Vec2 {
+    type Output = Vec2; // Associated type - the result of +
+    fn add(self, rhs: Vec2) -> Vec2 {
+        Vec2 {x: self.x + rhs.x, y: self.y + rhs.y}
+    }
+}
+
+fn test_trait_4() {
+    println!("Example - trait operator overloading");
+    let a = Vec2{x:1.0, y: 2.0};
+    let b = Vec2{x: 2.0, y: 4.0};
+    let c = a + b;
+    println!("{c:?}");
+}
+
 fn main() {
     println!("Exercise- Traits and Generics");
     println!("{}", "-".repeat(20));
@@ -85,5 +109,7 @@ fn main() {
     test_trait_2();
     println!("{}", "-".repeat(20));
     test_trait_3();
+    println!("{}", "-".repeat(20));
+    test_trait_4();
     println!("{}", "-".repeat(20));
 }
