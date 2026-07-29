@@ -92,6 +92,16 @@ fn test_trait_4() {
     let b = Vec2{x: 2.0, y: 4.0};
     let c = a + b;
     println!("{c:?}");
+
+    // self by value gotcha
+    // For copy types like Vec2, compiler copies
+    // But for non-copy types, + consumes the operands
+    // breaking example
+    let s1 = String::from("Hello");
+    let s2 = String::from("World");
+    let s3 = s1 + &s2; // s1 is moved to s3
+    // println!("{s1}"); // compiler error - value used after move
+    println!("{s2}"); // s2 was only borrowed not moved
 }
 
 fn main() {
